@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
     <title>NYC Subway</title>
     
     <!-- PWA Requirements -->
@@ -11,6 +11,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="NYC Subway">
     <link rel="apple-touch-icon" href="icon.png">
+
+    <!-- Touch Gesture Script Engines -->
+    <script src="https://jsdelivr.net"></script>
+    <script src="https://cloudflare.com"></script>
 
     <style>
         * {
@@ -25,7 +29,7 @@
             background-color: #111;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        /* Mobile notch protection */
+        /* Mobile notch protection formatting */
         .app-header {
             position: absolute;
             top: 0;
@@ -67,14 +71,10 @@
             width: 100%;
             height: calc(100% - (50px + env(safe-area-inset-top)));
             background-color: #fff;
-            overflow: auto; /* Allows smooth touch panning and zooming native to the device */
-            -webkit-overflow-scrolling: touch;
         }
-        .subway-map {
-            width: 100vw;
-            height: calc(100vh - (50px + env(safe-area-inset-top)));
-            object-fit: contain;
-            border: none;
+        #subway-svg {
+            width: 100%;
+            height: 100%;
         }
     </style>
 </head>
@@ -84,12 +84,52 @@
         <div class="app-title"><span class="mta-bullet">M</span> NYC Subway</div>
     </header>
 
-    <!-- Pointing directly to your local repository asset -->
     <main class="map-container">
-        <object class="subway-map" data="map.svg" type="image/svg+xml"></object>
+        <object id="subway-svg" data="map.svg" type="image/svg+xml"></object>
     </main>
 
     <script>
+        document.getElementById('subway-svg').addEventListener('load', function() {
+            // Configuration for combining Hammer.js gestures with svg-pan-zoom
+            const touchEventsHandler = {
+                haltSimultaneousGestures: false,
+                init: function(options) {
+                    this.hamburger = new Hammer(options.svgElement, {
+                        inputClass: Hammer.SUPPORT_POINTER_EVENTS ? Hammer.PointerEventInput : Hammer.TouchInput
+                    });
+                    
+                    this.hamburger.get('pinch').set({enable: true});
+
+                    // Listens for double taps and applies a crisp scale jump centered on the touch point
+                    this.hamburger.on('doubletap', function(ev) {
+                        if (options.instance.getZoom() > 2) {
+                            options.instance.zoomAtPoint(1, {x: ev.center.x, y: ev.center.y});
+                        } else {
+                            options.instance.zoomAtPoint(4, {x: ev.center.x, y: ev.center.y});
+                        }
+                    });
+
+                    options.svgElement.addEventListener('touchmove', function(e) { e.preventDefault(); }, {passive: false});
+                },
+                destroy: function() {
+                    this.hamburger.destroy();
+                }
+            };
+
+            // Bind the framework engine to our graphic
+            svgPanZoom('#subway-svg', {
+                zoomEnabled: true,
+                controlIconsEnabled: false,
+                fit: true,
+                center: true,
+                minZoom: 1,
+                maxZoom: 15,
+                mouseWheelZoomEnabled: true,
+                customEventsHandler: touchEventsHandler
+            });
+        });
+
+        // Background service worker handler
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
         }
