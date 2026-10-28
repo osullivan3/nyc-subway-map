@@ -1,8 +1,8 @@
-const CACHE_NAME = 'subway-v4'; // Incremented version clears out old troubleshooting scripts
+const CACHE_NAME = 'subway-v5'; // Bumped version deletes old corrupted SVG files completely
 const ASSETS = [
   'index.html',
   'manifest.json',
-  'map.svg',
+  'subway.jpg',
   'icon.png'
 ];
 
