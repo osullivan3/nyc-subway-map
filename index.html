@@ -12,10 +12,6 @@
     <meta name="apple-mobile-web-app-title" content="NYC Subway">
     <link rel="apple-touch-icon" href="icon.png">
 
-    <!-- Leaflet Mapping Framework Engine -->
-    <link rel="stylesheet" href="https://unpkg.com" />
-    <script src="https://unpkg.com"></script>
-
     <style>
         * {
             margin: 0;
@@ -29,7 +25,7 @@
             background-color: #111;
             font-family: -apple-system, BlinkMacSystemFont, sans-serif;
         }
-        /* Mobile notch protection formatting */
+        /* Mobile notch protection */
         .app-header {
             position: absolute;
             top: 0;
@@ -43,7 +39,7 @@
             align-items: center;
             padding-left: 16px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            z-index: 1000; /* Keeps header pinned above map container layers */
+            z-index: 10;
         }
         .app-title {
             font-size: 18px;
@@ -64,13 +60,21 @@
             font-size: 14px;
             font-weight: 900;
         }
-        #map {
+        .map-container {
             position: absolute;
             top: calc(50px + env(safe-area-inset-top));
             left: 0;
             width: 100%;
             height: calc(100% - (50px + env(safe-area-inset-top)));
-            background-color: #f4f3f0;
+            background-color: #fff;
+            overflow: auto; /* Allows smooth touch panning and zooming native to the device */
+            -webkit-overflow-scrolling: touch;
+        }
+        .subway-map {
+            width: 100vw;
+            height: calc(100vh - (50px + env(safe-area-inset-top)));
+            object-fit: contain;
+            border: none;
         }
     </style>
 </head>
@@ -80,24 +84,12 @@
         <div class="app-title"><span class="mta-bullet">M</span> NYC Subway</div>
     </header>
 
-    <!-- Map viewport injection container -->
-    <div id="map"></div>
+    <!-- Pointing directly to your local repository asset -->
+    <main class="map-container">
+        <object class="subway-map" data="map.svg" type="image/svg+xml"></object>
+    </main>
 
     <script>
-        // Initialize the tracking engine focused directly over Manhattan
-        const map = L.map('map', {
-            zoomControl: false, 
-            maxZoom: 15,
-            minZoom: 10
-        }).setView([40.7580, -73.9855], 12); 
-
-        // Loads a responsive, high-contrast open-source street/transit basemap layout
-        L.tileLayer('https://{s}://{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO',
-            subdomains: 'abcd'
-        }).addTo(map);
-
-        // Native PWA registration engine hook
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
         }
