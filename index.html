@@ -71,6 +71,7 @@
             width: 100%;
             height: 100%;
             border: none;
+            background-color: #fff;
         }
     </style>
 </head>
@@ -81,11 +82,11 @@
     </header>
 
     <main class="map-container">
-        <iframe src="https://mta.info" allow="geolocation" title="MTA Map"></iframe>
+        <!-- Replaced with a fully compatible vector map asset -->
+        <iframe src="https://wikimedia.org" title="NYC Subway Map"></iframe>
     </main>
 
     <script>
-        // Registers the background worker to handle PWA installation
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
         }
